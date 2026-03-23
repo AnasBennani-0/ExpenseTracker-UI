@@ -39,7 +39,7 @@
   },
   "scripts": {
     "start": "concurrently \"npx tailwindcss -i ./src/index.css -o ./src/dist.css --watch\" \"react-scripts start\"",
-    "build": "npx tailwindcss -i ./src/index.css -o ./src/dist.css && react-scripts build"
+    "build": "react-scripts build"
   },
   "eslintConfig": {
     "extends": [
