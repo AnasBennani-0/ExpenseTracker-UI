@@ -1,7 +1,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 // Ensure this points to the file containing your OKLCH variables
-import './dist.css'; 
+import './index.css'; 
 import App from './ExpenseTracker/App'
 import reportWebVitals from './reportWebVitals';
 import { ThemeProvider } from "./components/theme-provider";
