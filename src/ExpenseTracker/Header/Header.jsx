@@ -87,7 +87,7 @@ export default function Header() {
                
                 <div className="flex items-center gap-10">
                     <Link to="/" className="flex items-center gap-2.5 group">
-                        <div className="bg-gradient-to-br from-primary to-blue-600 text-white p-2.5 rounded-xl group-hover:shadow-lg group-hover:shadow-primary/30 transition-all duration-300 ring-1 ring-primary/20">
+                        <div className="bg-linear-to-br from-primary to-blue-600 text-white p-2.5 rounded-xl group-hover:shadow-lg group-hover:shadow-primary/30 transition-all duration-300 ring-1 ring-primary/20">
                             <Wallet className="w-5 h-5" />
                         </div>
                         <span className="font-black text-2xl tracking-tight text-foreground transition-colors group-hover:opacity-80">
@@ -154,7 +154,7 @@ export default function Header() {
                         <DropdownMenu>
                             <DropdownMenuTrigger className="outline-none group">
                                 <div className="flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-accent/50 transition-all duration-200 cursor-pointer border border-transparent hover:border-border/60">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-primary to-blue-500 flex items-center justify-center text-white font-bold shadow-md ring-2 ring-transparent group-hover:ring-primary/20 ring-offset-2 ring-offset-background transition-all">
+                                    <div className="w-10 h-10 rounded-full bg-linear-to-tr from-primary to-blue-500 flex items-center justify-center text-white font-bold shadow-md ring-2 ring-transparent group-hover:ring-primary/20 ring-offset-2 ring-offset-background transition-all">
                                         {getInitials(user.name)}
                                     </div>
                                     <div className="hidden sm:flex flex-col items-start">
