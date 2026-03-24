@@ -125,7 +125,7 @@ export default function Transaction() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* Utilisation de safeDb ici */}
+              {/* Utilisation de safeDb ici    */}
               {safeDb.length > 0 ? (
                 safeDb.map((el) => {
                   const category = safeDbC.find((cat) => cat.id == el.category_id);
@@ -257,4 +257,4 @@ export default function Transaction() {
       </div>
     </div>
   );
-}
+}   
