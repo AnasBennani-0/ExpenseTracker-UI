@@ -10,7 +10,17 @@ import { Provider } from 'react-redux';
 import store from './ExpenseTracker/store/store';
 axios.defaults.baseURL = 'http://localhost:8000';
 // axios.defaults.withCredentials = true;
-
+axios.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem('token');
+        if (token) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+            config.headers['Accept'] = 'application/json';
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
