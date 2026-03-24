@@ -22,9 +22,13 @@ export default function Transaction() {
   const [currentPage, setCurrentPage] = useState(1);
   
   // Tes variables venant du store Redux
-  const db = useSelector((st) => st.transaction.dbtrans) || [];
+  const db = useSelector((st) => st.transaction.dbtrans);
   const meta = useSelector((st) => st.transaction.meta) || { total: 0, current_page: 1, last_page: 1 };
-  const dbC = useSelector((st) => st.categories.dbCat) || [];
+  const dbC = useSelector((st) => st.categories.dbCat);
+
+  // FIX CRITIQUE : Sécurisation absolue des tableaux avant utilisation
+  const safeDb = Array.isArray(db) ? db : [];
+  const safeDbC = Array.isArray(dbC) ? dbC : [];
 
   useEffect(() => {
     dispatch(fetchTransactions({ page: currentPage }));
@@ -33,16 +37,16 @@ export default function Transaction() {
 
   // Fonction pour exporter en CSV
   const exportToCSV = () => {
-    // On utilise bien "db" ici, car c'est le nom de ta variable Redux
-    if (!db || db.length === 0) {
+    // Utilisation de safeDb pour éviter le crash lors de l'export
+    if (safeDb.length === 0) {
       alert("Aucune transaction à exporter.");
       return;
     }
 
     const headers = ["ID", "Date", "Montant (DH)", "Type", "Categorie", "Note"];
 
-    const csvRows = db.map(t => {
-      const catName = dbC.find(c => String(c.id) === String(t.category_id))?.name || "Inconnue";
+    const csvRows = safeDb.map(t => {
+      const catName = safeDbC.find(c => String(c.id) === String(t.category_id))?.name || "Inconnue";
       const typeLabel = t.type === 'expense' ? 'Dépense' : 'Revenu';
       return [
         t.id,
@@ -56,7 +60,6 @@ export default function Transaction() {
 
     const csvString = [headers.join(","), ...csvRows].join("\n");
 
-   
     const blob = new Blob(["\uFEFF" + csvString], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     
@@ -71,7 +74,6 @@ export default function Transaction() {
   return (
     <div className="p-6 md:p-8 max-w-7xl mx-auto space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       
-  
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
         <div className="flex items-center gap-3">
           <div className="p-3 bg-primary/10 rounded-2xl ring-1 ring-primary/20">
@@ -123,9 +125,10 @@ export default function Transaction() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {db.length > 0 ? (
-                db.map((el) => {
-                  const category = dbC.find((cat) => cat.id == el.category_id);
+              {/* Utilisation de safeDb ici */}
+              {safeDb.length > 0 ? (
+                safeDb.map((el) => {
+                  const category = safeDbC.find((cat) => cat.id == el.category_id);
                   return (
                     <TableRow key={el.id} className="group hover:bg-muted/40 transition-colors duration-200 border-b border-border/40">
                       <TableCell className="font-mono text-xs text-muted-foreground/70 pl-4">#{el.id}</TableCell>
@@ -210,7 +213,7 @@ export default function Transaction() {
                     <div className="flex flex-col items-center justify-center text-muted-foreground animate-pulse">
                       <FileText className="w-12 h-12 opacity-20 mb-4" />
                       <p className="text-lg font-semibold text-foreground/60">Aucune transaction trouvée</p>
-                      <p className="text-sm mt-1">Commencez par en ajouter une via le bouton en haut !</p>
+                      <p className="text-sm mt-1">Veuillez vous connecter ou ajouter une nouvelle transaction.</p>
                     </div>
                   </TableCell>
                 </TableRow>
