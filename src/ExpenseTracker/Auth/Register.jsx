@@ -21,13 +21,22 @@ export default function Register() {
         setIsLoading(true);
         try {
             const API_URL = process.env.REACT_APP_API_URL;
-            await axios.post(`${API_URL}/register`, {
+            
+            // 1. On stocke la réponse de l'API
+            const response = await axios.post(`${API_URL}/register`, {
                 name: nameRef.current.value,
                 email: emailRef.current.value,
                 password: passwordRef.current.value,
                 password_confirmation: passwordConfirmRef.current.value 
             });
-            nav("/login");
+
+            // 2. On sauvegarde le token et les infos de l'utilisateur
+            localStorage.setItem('token', response.data.token);
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+
+            // 3. Redirection vers l'application principale (au lieu du login)
+            nav("/Transaction"); 
+            
         } catch (error) {
             if (error.response && error.response.status === 422) {
                 setErrors(error.response.data.errors);
@@ -43,7 +52,7 @@ export default function Register() {
         <div className="min-h-screen flex items-center justify-center bg-background p-4">
             <div className="max-w-md w-full bg-card rounded-2xl shadow-xl border border-border overflow-hidden">
                 <div className="p-8 text-center border-b border-border/50 bg-muted/20">
-                    <div className="mx-auto bg-primary text-primary-foreground w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-lg">
+                    <div className="mx-auto bg-primary text-primary-foreground w-12 h-12 rounded-xl flex items-center justify-center mb-4 shadow-lg rotate-3 hover:rotate-0 transition-transform duration-300">
                         <Wallet className="w-6 h-6" />
                     </div>
                     <h2 className="text-2xl font-extrabold text-card-foreground tracking-tight">Créer un compte</h2>
@@ -93,12 +102,12 @@ export default function Register() {
                             </div>
                         </div>
 
-                        <Button type="submit" className="w-full h-11 text-base font-semibold mt-4" disabled={isLoading}>
+                        <Button type="submit" className="w-full h-11 text-base font-semibold mt-4 shadow-lg shadow-primary/20 transition-all hover:scale-[1.02] active:scale-[0.98]" disabled={isLoading}>
                             {isLoading ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <>S'inscrire <ArrowRight className="w-4 h-4 ml-2" /></>}
                         </Button>
                     </form>
                     <p className="text-center text-sm text-muted-foreground mt-6">
-                        Déjà un compte ? <Link to="/login" className="font-bold text-primary hover:underline">Connectez-vous ici</Link>
+                        Déjà un compte ? <Link to="/login" className="font-bold text-primary hover:underline transition-colors">Connectez-vous ici</Link>
                     </p>
                 </div>
             </div>

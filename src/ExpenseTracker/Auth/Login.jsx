@@ -17,14 +17,25 @@ export default function Login() {
         e.preventDefault();
         setIsLoading(true);
         setError(null);
+        
         try {
             const API_URL = process.env.REACT_APP_API_URL;
-            await axios.get(`${API_URL}/sanctum/csrf-cookie`);
-            await axios.post(`${API_URL}/login`, {
+            
+            // 1. On stocke la réponse de l'API (qui contient le token et le user)
+            const response = await axios.post(`${API_URL}/login`, {
                 email: emailRef.current.value,
                 password: passwordRef.current.value
             });
-            window.location.href = "/Transaction"; 
+            
+            // 2. On sauvegarde le token dans le navigateur pour les futures requêtes
+            localStorage.setItem('token', response.data.token);
+            
+            // Optionnel mais très utile : sauvegarder les infos du user
+            localStorage.setItem('user', JSON.stringify(response.data.user));
+
+            // 3. Redirection propre via React Router (pas de rechargement de page)
+            nav("/Transaction"); 
+            
         } catch (err) {
             if (err.response && err.response.status === 422) {
                 setError("Email ou mot de passe incorrect.");
