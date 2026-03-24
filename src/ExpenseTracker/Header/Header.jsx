@@ -1,8 +1,9 @@
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import { useEffect, useState } from 'react';
+import { useSelector, useDispatch } from 'react-redux'; // Ajouté
 import { Wallet, LogOut, LayoutDashboard, Settings, Moon, Sun, ChevronDown } from 'lucide-react';
 import { Button } from "../../components/ui/button";
+import { logout } from "../store/authSlice"; // Importez votre action logout
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,34 +16,21 @@ import {
 export default function Header() {
     const nav = useNavigate();
     const location = useLocation();
-    const [user, setUser] = useState(null);
-    const [isScrolled, setIsScrolled] = useState(false);
+    const dispatch = useDispatch();
+
+    // 👉 ON RÉCUPÈRE L'UTILISATEUR DEPUIS REDUX
+    const { user, isLoggedIn } = useSelector((state) => state.auth);
     
+    const [isScrolled, setIsScrolled] = useState(false);
     const [isDarkMode, setIsDarkMode] = useState(false);
 
-   
     useEffect(() => {
         const handleScroll = () => setIsScrolled(window.scrollY > 10);
         window.addEventListener('scroll', handleScroll);
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
-   
-    useEffect(() => {
-        const checkUser = async () => {
-            try {
-                const API_URL = process.env.REACT_APP_API_URL;
-                
-                const res = await axios.get(`${API_URL}/user-data`, { withCredentials: true });
-                setUser(res.data);
-            } catch (err) {
-                setUser(null);
-            }
-        };
-        checkUser();
-    }, []);
-
-  
+    // Mode sombre
     useEffect(() => {
         if (document.documentElement.classList.contains('dark')) {
             setIsDarkMode(true);
@@ -54,23 +42,17 @@ export default function Header() {
         setIsDarkMode(!isDarkMode);
     };
 
-    const handlelogout = async (e) => {
+    // 👉 LOGOUT MODIFIÉ POUR UTILISER REDUX
+    const handlelogout = (e) => {
         e.preventDefault();
-        try {
-            const API_URL = process.env.REACT_APP_API_URL;
-            await axios.post(`${API_URL}/logout`, {}, { withCredentials: true });
-            setUser(null);
-            nav("/login");
-        } catch (error) {
-            console.error("Erreur de déconnexion", error);
-        }
+        dispatch(logout()); // Nettoie le state et le localStorage
+        nav("/login");
     };
 
     const getInitials = (name) => {
         if (!name) return "U";
         return name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
     };
-
 
     const isActive = (path) => location.pathname.toLowerCase() === path.toLowerCase();
 
@@ -84,7 +66,6 @@ export default function Header() {
         >
             <div className="max-w-7xl mx-auto flex items-center justify-between px-6 md:px-8">
                 
-               
                 <div className="flex items-center gap-10">
                     <Link to="/" className="flex items-center gap-2.5 group">
                         <div className="bg-linear-to-br from-primary to-blue-600 text-white p-2.5 rounded-xl group-hover:shadow-lg group-hover:shadow-primary/30 transition-all duration-300 ring-1 ring-primary/20">
@@ -95,62 +76,30 @@ export default function Header() {
                         </span>
                     </Link>
 
-                    
-                    {user && (
+                    {/* Navigation visible si connecté */}
+                    {isLoggedIn && user && (
                         <nav className="hidden md:flex items-center gap-2">
-                            <Link 
-                                to="/Dashboard" 
-                                className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 ${
-                                    isActive('/Dashboard') || isActive('/')
-                                    ? 'text-primary bg-primary/10 shadow-sm shadow-primary/5' 
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                                }`}
-                            >
+                            <Link to="/Dashboard" className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 ${isActive('/Dashboard') || isActive('/') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-accent'}`}>
                                 Dashboard
                             </Link>
-                            <Link 
-                                to="/Transaction" 
-                                className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 ${
-                                    isActive('/Transaction') 
-                                    ? 'text-primary bg-primary/10 shadow-sm shadow-primary/5' 
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                                }`}
-                            >
+                            <Link to="/Transaction" className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 ${isActive('/Transaction') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-accent'}`}>
                                 Transactions
                             </Link>
-                            <Link
-                                to="/budget"
-                                className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 ${
-                                    isActive('/GestionBuget') 
-                                    ? 'text-primary bg-primary/10 shadow-sm shadow-primary/5' 
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-accent'
-                                }`}
-                            >
+                            <Link to="/budget" className={`px-4 py-2 rounded-full text-sm font-bold transition-all duration-200 ${isActive('/budget') ? 'text-primary bg-primary/10' : 'text-muted-foreground hover:bg-accent'}`}>
                                 Budgets
                             </Link>
                         </nav>
                     )}
                 </div>
 
-               
                 <div className="flex items-center gap-3 md:gap-5">
-                    
-                    
-                    <Button 
-                        variant="ghost" 
-                        size="icon" 
-                        onClick={toggleDarkMode} 
-                        className="rounded-full w-10 h-10 hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-300 hover:rotate-12"
-                        title="Basculer le thème"
-                    >
+                    <Button variant="ghost" size="icon" onClick={toggleDarkMode} className="rounded-full w-10 h-10 hover:bg-accent text-muted-foreground hover:text-foreground transition-all duration-300">
                         {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                     </Button>
 
-                  
-                    {user && <div className="hidden sm:block w-px h-6 bg-border/60"></div>}
+                    {isLoggedIn && <div className="hidden sm:block w-px h-6 bg-border/60"></div>}
 
-                   
-                    {user ? (
+                    {isLoggedIn && user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger className="outline-none group">
                                 <div className="flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-accent/50 transition-all duration-200 cursor-pointer border border-transparent hover:border-border/60">
@@ -158,12 +107,8 @@ export default function Header() {
                                         {getInitials(user.name)}
                                     </div>
                                     <div className="hidden sm:flex flex-col items-start">
-                                        <span className="text-sm font-bold text-foreground leading-none">
-                                            {user.name.split(' ')[0]}
-                                        </span>
-                                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mt-1">
-                                            Membre
-                                        </span>
+                                        <span className="text-sm font-bold text-foreground leading-none">{user.name.split(' ')[0]}</span>
+                                        <span className="text-[10px] font-medium text-muted-foreground uppercase tracking-widest mt-1">Membre</span>
                                     </div>
                                     <ChevronDown className="w-4 h-4 text-muted-foreground group-hover:text-foreground transition-colors hidden sm:block ml-1" />
                                 </div>
@@ -177,26 +122,19 @@ export default function Header() {
                                     </div>
                                 </DropdownMenuLabel>
                                 <DropdownMenuSeparator className="bg-border/60 mx-2" />
-                                
-                                <div className="p-1">
-                                    <DropdownMenuItem onClick={() => nav('/Dashboard')} className="cursor-pointer font-medium focus:bg-accent focus:text-accent-foreground rounded-xl py-2.5">
-                                        <LayoutDashboard className="mr-3 h-4 w-4 opacity-70" />
-                                        <span>Mon Dashboard</span>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem onClick={() => nav('/Profile')} className="cursor-pointer font-medium focus:bg-accent focus:text-accent-foreground rounded-xl py-2.5">
-                                        <Settings className="mr-3 h-4 w-4 opacity-70" />
-                                        <span>Paramètres Profile</span>
-                                    </DropdownMenuItem>
-                                </div>
-                                
+                                <DropdownMenuItem onClick={() => nav('/Dashboard')} className="cursor-pointer rounded-xl py-2.5">
+                                    <LayoutDashboard className="mr-3 h-4 w-4 opacity-70" />
+                                    <span>Mon Dashboard</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => nav('/Profile')} className="cursor-pointer rounded-xl py-2.5">
+                                    <Settings className="mr-3 h-4 w-4 opacity-70" />
+                                    <span>Paramètres Profile</span>
+                                </DropdownMenuItem>
                                 <DropdownMenuSeparator className="bg-border/60 mx-2" />
-                                
-                                <div className="p-1">
-                                    <DropdownMenuItem onClick={handlelogout} className="text-destructive font-bold focus:bg-destructive/10 focus:text-destructive cursor-pointer rounded-xl py-2.5 transition-colors">
-                                        <LogOut className="mr-3 h-4 w-4" />
-                                        <span>Se déconnecter</span>
-                                    </DropdownMenuItem>
-                                </div>
+                                <DropdownMenuItem onClick={handlelogout} className="text-destructive font-bold focus:bg-destructive/10 focus:text-destructive cursor-pointer rounded-xl py-2.5 transition-colors">
+                                    <LogOut className="mr-3 h-4 w-4" />
+                                    <span>Se déconnecter</span>
+                                </DropdownMenuItem>
                             </DropdownMenuContent>
                         </DropdownMenu>
                     ) : (
