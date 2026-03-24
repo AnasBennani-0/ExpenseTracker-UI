@@ -12,7 +12,11 @@ import Search from "./Search";
 
 export default function Filter({ setCurrentPage }) {
   const dispatch = useDispatch();
+  
+  // SÉCURITÉ : On récupère dbCat et on s'assure que c'est un tableau
   const dbC = useSelector((st) => st.categories.dbCat);
+  const safeDbC = Array.isArray(dbC) ? dbC : [];
+
   const [filters, setFilters] = useState({
     category_id: "all",
     type: "all",
@@ -20,7 +24,6 @@ export default function Filter({ setCurrentPage }) {
     note: ""
   });
 
-  // Le useEffect rassemble TOUS les filtres intelligents
   useEffect(() => {
     const params = {};
     
@@ -29,6 +32,8 @@ export default function Filter({ setCurrentPage }) {
     if (filters.note !== "") params.note = filters.note;  
     
     if (filters.month) {
+      // Note: L'utilisation de -31 est simplifiée, 
+      // idéalement ton backend gère le mois complet ou tu calcules le dernier jour.
       params.start_date = `${filters.month}-01`;
       params.end_date = `${filters.month}-31`;
     }
@@ -80,15 +85,23 @@ export default function Filter({ setCurrentPage }) {
             <SelectContent className="bg-card/95 backdrop-blur-md border-border rounded-xl shadow-xl">
               <SelectGroup>
                 <SelectItem value="all" className="font-medium">Toutes les catégories</SelectItem>
-                {dbC.map((el) => (
-                  <SelectItem key={el.id} value={el.id.toString()} className="font-medium">
-                    {el.name}
-                  </SelectItem>
-                ))}
+                
+                {/* SÉCURITÉ : Utilisation de safeDbC ici */}
+                {safeDbC.length > 0 ? (
+                  safeDbC.map((el) => (
+                    <SelectItem key={el.id} value={el.id.toString()} className="font-medium">
+                      {el.name}
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem disabled value="loading">Chargement...</SelectItem>
+                )}
               </SelectGroup>
             </SelectContent>
           </Select>
         </div>
+
+        {/* PAR TYPE */}
         <div className="space-y-2 flex-1 min-w-45">
           <Label htmlFor="type-filter" className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
             <Activity className="w-3.5 h-3.5" /> Type d'opération
@@ -139,9 +152,9 @@ export default function Filter({ setCurrentPage }) {
           />
         </div>
         
-       
-        <div className="space-y-2 flex-2 min-w-62,5">
-          <Label className="text-[11px] font-bold text-transparent uppercase tracking-wider select-none hidden md:block">
+        {/* RECHERCHE */}
+        <div className="space-y-2 flex-grow min-w-[250px]">
+          <Label className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider hidden md:block opacity-0">
             Recherche
           </Label>
           <Search 
@@ -152,14 +165,13 @@ export default function Filter({ setCurrentPage }) {
           />
         </div>
         
-       
+        {/* BOUTON RESET */}
         <div className="shrink-0">
           <Button
             variant="outline"
             size="sm"
             onClick={handleReset}
             className="h-10 px-4 bg-background/50 border-border/60 text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-all rounded-xl"
-            title="Effacer tous les filtres"
           >
             <RotateCcw className="w-4 h-4 mr-2" />
             <span className="hidden sm:inline font-medium">Réinitialiser</span>
